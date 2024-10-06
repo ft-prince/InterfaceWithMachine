@@ -1,9 +1,18 @@
 {% extends 'base.html' %}
 
-{% block title %}Control Chart{% endblock %}
+{% block title %}
+<title>
+
+Control Chart
+</title>
+
+{% endblock %}
 
 {% block content %}
     
+
+<div class='container'>
+
 <div class="sections">
     <div class="d-flex justify-content-between align-items-center">
         
@@ -52,6 +61,8 @@
     {% else %}
         <p>No capability indices data available</p>
     {% endif %}
+
+</div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>

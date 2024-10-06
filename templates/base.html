@@ -214,8 +214,23 @@
                 href="{% url 'dashboard' %}"
                 >Dashboard</a
               >
-            </li>
-            {% if user.is_staff %}
+             
+          </li>
+<li>
+  <a
+  class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+  href="{% url 'station_media_slider' 1 %}"
+>Screen-1</a>
+
+</li>
+<li>
+  <a
+  class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+  href="{% url 'station_media_slider' 2 %}"
+>Screen-2</a>
+
+</li>
+          {% if user.is_staff %}
             {% comment %} <li class="nav-item">
               <a
                 class="nav-link {% if request.resolver_match.url_name == 'activate_product' %}active{% endif %}"

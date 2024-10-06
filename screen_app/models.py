@@ -214,7 +214,7 @@ class FixtureCleaningRecord(models.Model):
                 'test',
                 {
                     'type': 'chat_message',
-                    'message': f'Fixture Cleaning Record {self.pk}: Verification Tag Available is Not Available'
+                    'message': f'Fixture Cleaning Record {self.pk}: Verification Tag Available is Not Available  {self.station} by {self.operator_name} '
                 }
             )
         if self.verification_tag_condition == 'Not Available':
@@ -222,7 +222,7 @@ class FixtureCleaningRecord(models.Model):
                 'test',
                 {
                     'type': 'chat_message',
-                    'message': f'Fixture Cleaning Record {self.pk}: Verification Tag Condition is Not Available'
+                    'message': f'Fixture Cleaning Record {self.pk}: Verification Tag Condition is Not Available   {self.station} by {self.operator_name}'
                 }
             )
         if self.no_dust_on_fixture == 'Not Available':
@@ -230,7 +230,7 @@ class FixtureCleaningRecord(models.Model):
                 'test',
                 {
                     'type': 'chat_message',
-                    'message': f'Fixture Cleaning Record {self.pk}: No Dust on Fixture is Not Available'
+                    'message': f'Fixture Cleaning Record {self.pk}: No Dust on Fixture is Not Available   {self.station} by {self.operator_name}'
                 }
             )
         if self.no_epoxy_coating_on_fixture == 'Not Available':
@@ -238,7 +238,7 @@ class FixtureCleaningRecord(models.Model):
                 'test',
                 {
                     'type': 'chat_message',
-                    'message': f'Fixture Cleaning Record {self.pk}: No Epoxy Coating on Fixture is Not Available'
+                    'message': f'Fixture Cleaning Record {self.pk}: No Epoxy Coating on Fixture is Not Available   {self.station} by {self.operator_name}'
                 }
             )
 
@@ -266,8 +266,8 @@ class RejectionSheet(models.Model):
     station = models.CharField(max_length=100, choices=STATION_CHOICES, default='DSL01_S01')
     month = models.DateField(default=timezone.now,blank=True)
     date=models.DateField(default=timezone.now,blank=True)
-    stage = models.CharField(max_length=200, choices=STATION_CHOICES)
-    part_description = models.CharField(max_length=250,choices=STATION_CHOICES)
+    stage = models.CharField(max_length=400, choices=MACHINE_LOCATION_CHOICES)
+    part_description = models.CharField(max_length=450,choices=MACHINE_NAME_CHOICES)
 
     # Quantity fields
     opening_balance = models.IntegerField(validators=[MinValueValidator(0)])
@@ -516,7 +516,7 @@ class DailyChecklistItem(models.Model):
                 'test',
                 {
                     'type': 'chat_message',
-                    'message': f'Daily Checklist Item {self.pk}: Remark 1 is Not OK {self.machine_location}'
+                    'message': f'Daily Checklist Item {self.pk}: Remark 1 is Not OK {self.machine_location}  {self.station} by {self.manager} '
                 }
             )
         if self.Remark_2 == '✘':
@@ -524,7 +524,7 @@ class DailyChecklistItem(models.Model):
                 'test',
                 {
                     'type': 'chat_message',
-                    'message': f'Daily Checklist Item {self.pk}: Remark 2 is Not OK {self.machine_location}'
+                    'message': f'Daily Checklist Item {self.pk}: Remark 2 is Not OK {self.machine_location}  {self.station} by {self.manager} '
                 }
             )
         if self.Remark_3 == '✘':
@@ -532,7 +532,7 @@ class DailyChecklistItem(models.Model):
                 'test',
                 {
                     'type': 'chat_message',
-                    'message': f'Daily Checklist Item {self.pk}: Remark 3 is Not OK {self.machine_location}'
+                    'message': f'Daily Checklist Item {self.pk}: Remark 3 is Not OK {self.machine_location}  {self.station} by {self.manager} '
                 }
             )
         if self.Remark_4 == '✘':
@@ -540,7 +540,7 @@ class DailyChecklistItem(models.Model):
                 'test',
                 {
                     'type': 'chat_message',
-                    'message': f'Daily Checklist Item {self.pk}: Remark 4 is Not OK {self.machine_location}'
+                    'message': f'Daily Checklist Item {self.pk}: Remark 4 is Not OK {self.machine_location}  {self.station} by {self.manager} '
                 }
             )
         if self.Remark_5 == '✘':
@@ -548,7 +548,7 @@ class DailyChecklistItem(models.Model):
                 'test',
                 {
                     'type': 'chat_message',
-                    'message': f'Daily Checklist Item {self.pk}: Remark 5 is Not OK {self.machine_location}'
+                    'message': f'Daily Checklist Item {self.pk}: Remark 5 is Not OK {self.machine_location}  {self.station} by {self.manager} '
                 }
             )
         if self.Remark_6 == '✘':
@@ -556,7 +556,7 @@ class DailyChecklistItem(models.Model):
                 'test',
                 {
                     'type': 'chat_message',
-                    'message': f'Daily Checklist Item {self.pk}: Remark 6 is Not OK {self.machine_location}'
+                    'message': f'Daily Checklist Item {self.pk}: Remark 6 is Not OK {self.machine_location}  {self.station} by {self.manager} '
                 }
             )
         if self.Remark_7 == '✘':
@@ -564,7 +564,7 @@ class DailyChecklistItem(models.Model):
                 'test',
                 {
                     'type': 'chat_message',
-                    'message': f'Daily Checklist Item {self.pk}: Remark 7 is Not OK {self.machine_location}'
+                    'message': f'Daily Checklist Item {self.pk}: Remark 7 is Not OK {self.machine_location}  {self.station} by {self.manager} '
                 }
             )
 
@@ -650,7 +650,7 @@ class WeeklyChecklistItem(models.Model):
                 'test',
                 {
                     'type': 'chat_message',
-                    'message': f'Weekly Checklist Item {self.pk}: Remark 8 is Not OK {self.machine_location}'
+                    'message': f'Weekly Checklist Item {self.pk}: Remark 8 is Not OK {self.machine_location}  {self.station} by {self.manager} '
                 }
             )
         if self.Remark_9 == '✘':
@@ -658,7 +658,7 @@ class WeeklyChecklistItem(models.Model):
                 'test',
                 {
                     'type': 'chat_message',
-                    'message': f'Weekly Checklist Item {self.pk}: Remark 9 is Not OK {self.machine_location}'
+                    'message': f'Weekly Checklist Item {self.pk}: Remark 9 is Not OK {self.machine_location}  {self.station} by {self.manager} '
                 }
             )
         if self.Remark_10 == '✘':
@@ -666,7 +666,7 @@ class WeeklyChecklistItem(models.Model):
                 'test',
                 {
                     'type': 'chat_message',
-                    'message': f'Weekly Checklist Item {self.pk}: Remark 10 is Not OK {self.machine_location}'
+                    'message': f'Weekly Checklist Item {self.pk}: Remark 10 is Not OK {self.machine_location}  {self.station} by {self.manager} '
                 }
             )
         if self.Remark_11 == '✘':
@@ -674,7 +674,7 @@ class WeeklyChecklistItem(models.Model):
                 'test',
                 {
                     'type': 'chat_message',
-                    'message': f'Weekly Checklist Item {self.pk}: Remark 11 is Not OK {self.machine_location}'
+                    'message': f'Weekly Checklist Item {self.pk}: Remark 11 is Not OK {self.machine_location}  {self.station} by {self.manager} '
                 }
             )
 
@@ -753,7 +753,7 @@ class MonthlyChecklistItem(models.Model):
                 'test',  # Use the same group name as in the WebSocket consumer
                 {
                     'type': 'chat_message',
-                    'message': f'Notification: {self.machine_location} Not OK for MonthlyChecklistItem {self.pk} '
+                    'message': f'Notification: {self.machine_location} Not OK for MonthlyChecklistItem {self.station} by {self.manager} '
                 }
             )
         
@@ -771,8 +771,6 @@ from django.db import models
 from django.db.models import Avg, StdDev
 import math
 
-from django.db import models, IntegrityError
-
 class ControlChartReading(models.Model):
     date = models.DateField(unique=True)
     reading1 = models.FloatField()
@@ -780,6 +778,8 @@ class ControlChartReading(models.Model):
     reading3 = models.FloatField()
     reading4 = models.FloatField()
     reading5 = models.FloatField()
+    usl = models.FloatField(blank=True, null=True,default=375)  # New field for Upper Specification Limit
+    lsl = models.FloatField(blank=True, null=True,default=355)  # New field for Lower Specification Limit
 
     def save(self, *args, **kwargs):
         self.clean()
@@ -788,42 +788,43 @@ class ControlChartReading(models.Model):
 
     def clean(self):
         readings = [self.reading1, self.reading2, self.reading3, self.reading4, self.reading5]
-        if any(reading < 0 for reading in readings):  # Example validation
+        if any(reading < 0 for reading in readings):
             raise ValueError("Readings cannot be negative.")
+        if self.usl is not None and self.lsl is not None and self.usl <= self.lsl:
+            raise ValueError("USL must be greater than LSL")
 
     def calculate_statistics(self):
         readings = [self.reading1, self.reading2, self.reading3, self.reading4, self.reading5]
         x_bar = sum(readings) / len(readings)
         r = max(readings) - min(readings)
 
-        try:
-            stats, created = ControlChartStatistics.objects.get_or_create(date=self.date)
-            stats.x_bar = x_bar
-            stats.r = r
-            stats.save()
-        except IntegrityError:
-            print("IntegrityError occurred while saving statistics.")
-
-
-import math
-from django.db import models
-from django.db.models import Avg, StdDev
+        ControlChartStatistics.objects.update_or_create(
+            date=self.date,
+            defaults={
+                'x_bar': x_bar, 
+                'r': r,
+                'usl': self.usl if self.usl is not None else 375,
+                'lsl': self.lsl if self.lsl is not None else 355
+            }
+        )
 
 class ControlChartStatistics(models.Model):
     date = models.DateField(unique=True)
     x_bar = models.FloatField()
     r = models.FloatField()
+    usl = models.FloatField(default=375)  # New field for Upper Specification Limit
+    lsl = models.FloatField(default=355)  # New field for Lower Specification Limit
 
     @classmethod
     def calculate_control_limits(cls):
         data = cls.objects.all()
         if not data.exists():
-            return None  # Handle cases where no data exists
+            return None
 
         x_bar_avg = data.aggregate(Avg('x_bar'))['x_bar__avg']
         r_bar = data.aggregate(Avg('r'))['r__avg']
 
-        a2, d3, d4 = 0.58, 0, 2.11  # Constants for n=5 from the chart
+        a2, d3, d4 = 0.58, 0, 2.11  # Constants for n=5 from the Excel sheet
 
         ucl_x_bar = x_bar_avg + a2 * r_bar
         lcl_x_bar = x_bar_avg - a2 * r_bar
@@ -840,27 +841,42 @@ class ControlChartStatistics(models.Model):
         }
 
     @classmethod
-    def calculate_capability_indices(cls, usl, lsl):
+    def calculate_capability_indices(cls):
         data = cls.objects.all()
         if not data.exists():
-            return None  # Handle cases where no data exists
+            return None
 
         x_bar_avg = data.aggregate(Avg('x_bar'))['x_bar__avg']
-        std_dev = data.aggregate(StdDev('x_bar'))['x_bar__stddev']
-
-        if std_dev is None or std_dev == 0:
-            std_dev = 1  # Avoid division by zero
+        r_bar = data.aggregate(Avg('r'))['r__avg']
+        
+        # Get the latest USL and LSL values
+        latest_stats = cls.objects.latest('date')
+        usl = latest_stats.usl
+        lsl = latest_stats.lsl
+        
+        # Estimate standard deviation using average range method
+        std_dev = r_bar / 2.326  # d2 for n=5 is 2.326
 
         cp = (usl - lsl) / (6 * std_dev)
-        cpk = min((usl - x_bar_avg) / (3 * std_dev), (x_bar_avg - lsl) / (3 * std_dev))
+        cpk_upper = (usl - x_bar_avg) / (3 * std_dev)
+        cpk_lower = (x_bar_avg - lsl) / (3 * std_dev)
+        cpk = min(cpk_upper, cpk_lower)
 
         return {
             'cp': cp,
             'cpk': cpk,
-            'std_dev': std_dev
+            'cpk_upper': cpk_upper,
+            'cpk_lower': cpk_lower,
+            'std_dev': std_dev,
+            'usl': usl,
+            'lsl': lsl
         }
 
-
+    def save(self, *args, **kwargs):
+        # Ensure USL is always greater than LSL
+        if self.usl <= self.lsl:
+            raise ValueError("USL must be greater than LSL")
+        super().save(*args, **kwargs)
 
 # > python -m pip uninstall channels
 # > python -m pip install -Iv channels==3.0.5

@@ -1,10 +1,17 @@
 {% extends 'base.html' %}
 
-{% block title %}Reading Detail{% endblock %}
+{% block title %}
+<title>
+
+Reading Detail
+</title>
+
+{% endblock %}
 
 {% block content %}
     <h1>Reading Detail</h1>
-    <dl class="row">
+    <div class='container'>
+
         <dt class="col-sm-3">Date</dt>
         <dd class="col-sm-9">{{ reading.date }}</dd>
         <dt class="col-sm-3">Reading 1</dt>
@@ -21,4 +28,6 @@
     <a href="{% url 'reading_update' reading.id %}" class="btn btn-warning">Edit</a>
     <a href="{% url 'reading_delete' reading.id %}" class="btn btn-danger">Delete</a>
     <a href="{% url 'reading_list' %}" class="btn btn-secondary">Back to List</a>
-{% endblock %}
+</div>
+
+    {% endblock %}

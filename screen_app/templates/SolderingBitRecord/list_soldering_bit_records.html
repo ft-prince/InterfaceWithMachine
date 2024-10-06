@@ -78,10 +78,75 @@
       color: #777;
       font-style: italic;
     }
+    .search-and-filter {
+      background-color: #f8f8f8;
+      padding: 20px;
+      border-radius: 5px;
+      margin-bottom: 20px;
+  }
+  .search-form, .filter-form {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 10px;
+  }
+  input[type="text"], input[type="month"] {
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+  }
+  .search-btn, .filter-btn {
+      padding: 8px 15px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+  }
+  .search-btn:hover, .filter-btn:hover {
+      background-color: #45a049;
+  }
+  .export-buttons {
+      margin-bottom: 20px;
+  }
+  .export-btn {
+      display: inline-block;
+      padding: 10px 20px;
+      margin-right: 10px;
+      text-decoration: none;
+      color: white;
+      border-radius: 5px;
+      transition: background-color 0.3s;
+      font-weight: bold;
+  }
+  .export-excel { background-color: #217346; }
+  .export-excel:hover { background-color: #1e6f41; }
+  .export-pdf { background-color: #db4437; }
+  .export-pdf:hover { background-color: #c53929; }
+
   </style>
   
 <div class="container">
   <h1>Soldering Bit Records</h1>
+
+  
+  <div class="search-and-filter">
+    <form method="get" class="search-form">
+        <input type="text" name="search" placeholder="Search..." value="{{ search_query }}">
+        <button type="submit" class="search-btn">Search</button>
+    </form>
+    <form method="get" class="filter-form">
+        <input type="month" name="date_from" value="{{ date_from }}" placeholder="From">
+        <input type="month" name="date_to" value="{{ date_to }}" placeholder="To">
+        <button type="submit" class="filter-btn">Filter</button>
+    </form>
+</div>
+
+<div class="export-buttons">
+    <a href="{% url 'list_soldering_bit_records' %}?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}export=excel" class="export-btn export-excel">Export to Excel</a>
+    <a href="{% url 'list_soldering_bit_records' %}?{% if request.GET.urlencode %}{{ request.GET.urlencode }}&{% endif %}export=pdf" class="export-btn export-pdf">Export to PDF</a>
+</div>
+
   <a href="{% url 'add_soldering_bit_record' %}" class="add-new-btn"
     >Add New Record</a
   >
@@ -101,7 +166,7 @@
       {% for record in records %}
       <tr>
         <td>{{record.doc_number}}</td>
-        <td>{{record.get_machine_no_display}}</td>
+        <td>{{record.machine_no}}</td>
         <td>{{record.get_machine_location_display}}</td>
         <td>{{record.month|date:"F Y"}}</td>
         <td>

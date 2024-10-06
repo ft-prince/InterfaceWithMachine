@@ -98,7 +98,7 @@ from .models import ControlChartReading
 class ControlChartReadingForm(forms.ModelForm):
     class Meta:
         model = ControlChartReading
-        fields = ['date', 'reading1', 'reading2', 'reading3', 'reading4', 'reading5']
+        fields = ['date', 'reading1', 'reading2', 'reading3', 'reading4', 'reading5','usl','lsl']
         widgets = {
             'date': forms.DateInput(attrs={'type': 'date'}),
         }                

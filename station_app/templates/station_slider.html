@@ -19,6 +19,7 @@
             width: 100vw;
             background-color: black;
             position: relative;
+            z-index: 0;
         }
         .slider-container video{
             height: 100%;
@@ -27,9 +28,8 @@
             position: absolute;
             top: 0;
             left: 0;
-            object-fit:cover;
-            transform:rotate(180deg);
-
+            object-fit: cover;
+            transform: rotate(180deg);
         }
         .slider-container video.active, .slider-container embed.active {
             display: block;
@@ -41,17 +41,54 @@
             position: absolute;
             top: 0;
             left: 10%;
-            object-fit:none;
+            object-fit: none;
 
+        }
+
+        /* Center the dashboard button */
+        .dashboard-container {
+            position: absolute;
+            top: 0%;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+
+            z-index: 10;
+        }
+
+        .dashboard-button {
+            background-color: #007bff;
+            color: white;
+            padding: 15px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 18px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        
+        .dashboard-button:hover {
+            background-color: #0056b3;
         }
     </style>
 </head>
 <body>
+
+    <div class="dashboard-container">
+        <a 
+            class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}" 
+            href="{% url 'dashboard' %}"
+        >
+            <button class="dashboard-button">Dashboard</button>
+        </a>
+    </div>
+
     <div class="slider-container" id="slider-container"></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            const stationId = {{ station.id }};
+            const stationId = `{{ station.id }}`;
             const url = `/station/${stationId}/media/`;
             let currentIndex = 0;
             const mediaElements = [];
@@ -106,7 +143,7 @@
                                 mediaElement.addEventListener('ended', switchMedia);
                             } else if (media.type === 'pdf') {
                                 mediaElement = document.createElement('embed');
-                                mediaElement.src = media.url+'#toolbar=0';
+                                mediaElement.src = media.url + '#toolbar=0';
                                 mediaElement.type = 'application/pdf';
                                 mediaElement.dataset.duration = media.duration * 1000;
                                 mediaElement.className = index === 0 ? 'active' : '';

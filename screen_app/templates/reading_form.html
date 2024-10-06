@@ -1,9 +1,22 @@
 {% extends 'base.html' %}
 
-{% block title %}{% if form.instance.pk %}Edit Reading{% else %}Add Reading{% endif %}{% endblock %}
+{% block title %}
+<title>
+
+    {% if form.instance.pk %}Edit Reading{% else %}Add Reading{% endif %}
+</title>
+{% endblock %}
 
 {% block content %}
+
+<div class='container'>
+<div class="d-flex justify-content-between align-items-center ms-auto my-3 mx-4">
     <h1>{% if form.instance.pk %}Edit Reading{% else %}Add Reading{% endif %}</h1>
+    <p>QSF-13-06</p>
+</div>
+
+
+
     <form method="post">
         {% csrf_token %}
         {% for field in form %}
@@ -22,4 +35,6 @@
         <button type="submit" class="btn btn-primary">Save</button>
         <a href="{% url 'reading_list' %}" class="btn btn-secondary">Cancel</a>
     </form>
+</div>
+
 {% endblock %}

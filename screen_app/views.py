@@ -116,12 +116,201 @@ class AddFixtureCleaningRecordView(View):
         return render(request, 'fixture_records/add_fixture_cleaning_record.html', {'form': form})
 
 
+import csv
+from django.http import HttpResponse
+from django.utils.decorators import method_decorator
+from django.contrib.admin.views.decorators import staff_member_required
+from django.views.generic import ListView
+from django.db.models import Q
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter, landscape
+from reportlab.lib import colors
+from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph
+from reportlab.lib.styles import getSampleStyleSheet
+from io import BytesIO
+import xlsxwriter
+from .models import FixtureCleaningRecord
+
+
 @method_decorator(staff_member_required, name='dispatch')
 class ListFixtureCleaningRecordView(ListView):
     model = FixtureCleaningRecord
     template_name = 'fixture_records/list_fixture_cleaning_records.html'
     context_object_name = 'records'
     ordering = ['-date', '-time']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        # Apply search
+        search_query = self.request.GET.get('search')
+        if search_query:
+            queryset = queryset.filter(
+                Q(fixture_control_no__icontains=search_query) |
+                Q(fixture_location__icontains=search_query) |
+                Q(shift__icontains=search_query) |
+                Q(operator_name__username__icontains=search_query) |
+                Q(verification_tag_available__icontains=search_query) |
+                Q(verification_tag_condition__icontains=search_query) |
+                Q(no_dust_on_fixture__icontains=search_query) |
+                Q(no_epoxy_coating_on_fixture__icontains=search_query)
+            )
+        # Apply filters
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        location = self.request.GET.get('location')
+        shift = self.request.GET.get('shift')
+        if date_from:
+            queryset = queryset.filter(date__gte=date_from)
+        if date_to:
+            queryset = queryset.filter(date__lte=date_to)
+        if location:
+            queryset = queryset.filter(fixture_location__icontains=location)
+        if shift:
+            queryset = queryset.filter(shift=shift)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('search', '')
+        context['date_from'] = self.request.GET.get('date_from', '')
+        context['date_to'] = self.request.GET.get('date_to', '')
+        context['location'] = self.request.GET.get('location', '')
+        context['shift'] = self.request.GET.get('shift', '')
+        return context
+
+    def get(self, request, *args, **kwargs):
+        if 'export' in request.GET:
+            queryset = self.get_queryset()
+            export_format = request.GET.get('export')
+            if export_format == 'excel':
+                return self.export_excel(queryset)
+            elif export_format == 'pdf':
+                return self.export_pdf(queryset)
+        return super().get(request, *args, **kwargs)
+
+    def export_excel(self, queryset):
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename=fixture_cleaning_records.xlsx'
+
+        workbook = xlsxwriter.Workbook(response, {'in_memory': True})
+        worksheet = workbook.add_worksheet()
+
+        # Define styles
+        header_format = workbook.add_format({
+            'bold': True,
+            'font_color': 'white',
+            'bg_color': '#4CAF50',
+            'border': 1,
+            'align': 'center',
+            'valign': 'vcenter'
+        })
+        cell_format = workbook.add_format({
+            'border': 1,
+            'align': 'center',
+            'valign': 'vcenter'
+        })
+        date_format = workbook.add_format({
+            'border': 1,
+            'align': 'center',
+            'valign': 'vcenter',
+            'num_format': 'yyyy-mm-dd'
+        })
+
+        # Set column widths
+        worksheet.set_column('A:I', 15)
+
+        # Write header row
+        headers = ['Control No', 'Location', 'Shift', 'Date', 'Operator Name', 'Tag Available', 'Tag Condition', 'No Dust', 'No Epoxy Coating']
+        for col, header in enumerate(headers):
+            worksheet.write(0, col, header, header_format)
+
+        # Write data rows
+        for row, record in enumerate(queryset, start=1):
+            worksheet.write(row, 0, record.fixture_control_no, cell_format)
+            worksheet.write(row, 1, record.fixture_location, cell_format)
+            worksheet.write(row, 2, record.shift, cell_format)
+            worksheet.write(row, 3, record.date, date_format)
+            worksheet.write(row, 4, record.operator_name.username if record.operator_name else '', cell_format)
+            worksheet.write(row, 5, record.verification_tag_available, cell_format)
+            worksheet.write(row, 6, record.verification_tag_condition, cell_format)
+            worksheet.write(row, 7, record.no_dust_on_fixture, cell_format)
+            worksheet.write(row, 8, record.no_epoxy_coating_on_fixture, cell_format)
+
+        # Add alternating row colors
+        for row in range(1, len(queryset) + 1):
+            if row % 2 == 0:
+                worksheet.set_row(row, None, workbook.add_format({'bg_color': '#f2f2f2'}))
+
+        workbook.close()
+        return response
+
+    def export_pdf(self, queryset):
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename=fixture_cleaning_records.pdf'
+
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=landscape(letter), rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
+
+        elements = []
+
+        # Add title
+        styles = getSampleStyleSheet()
+        elements.append(Paragraph("Fixture Cleaning Records", styles['Title']))
+        elements.append(Paragraph("<br/><br/>", styles['Normal']))
+
+        # Prepare data for table
+        data = [['Control No', 'Location', 'Shift', 'Date', 'Operator', 'Tag Available', 'Tag Condition', 'No Dust', 'No Epoxy']]
+        for record in queryset:
+            data.append([
+                record.fixture_control_no,
+                record.fixture_location,
+                record.shift,
+                record.date.strftime('%Y-%m-%d'),
+                record.operator_name.username if record.operator_name else '',
+                record.verification_tag_available,
+                record.verification_tag_condition,
+                record.no_dust_on_fixture,
+                record.no_epoxy_coating_on_fixture
+            ])
+
+        # Create table
+        table = Table(data)
+
+        # Add style to table
+        style = TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.green),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 12),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 10),
+            ('TOPPADDING', (0, 1), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ])
+
+        # Add a strip pattern to the table
+        for row in range(1, len(data)):
+            if row % 2 == 0:
+                style.add('BACKGROUND', (0, row), (-1, row), colors.lightgrey)
+
+        table.setStyle(style)
+
+        # Add the table to the elements
+        elements.append(table)
+
+        # Build the PDF
+        doc.build(elements)
+
+        pdf = buffer.getvalue()
+        buffer.close()
+        response.write(pdf)
+        return response
 
 @method_decorator(staff_member_required, name='dispatch')
 class UpdateFixtureCleaningRecordView(UpdateView):
@@ -177,6 +366,45 @@ class ListRejectionSheetView(ListView):
     context_object_name = 'sheets'
     ordering = ['-month', '-date']
 
+    def get_queryset(self):
+        queryset = super().get_queryset()
+
+        # Apply search
+        search_query = self.request.GET.get('search')
+        if search_query:
+            queryset = queryset.filter(
+                Q(station__icontains=search_query) |
+                Q(stage__icontains=search_query) |
+                Q(part_description__icontains=search_query) |
+                Q(operator_name__icontains=search_query)
+            )
+
+        # Apply filters
+        month_from = self.request.GET.get('month_from')
+        month_to = self.request.GET.get('month_to')
+        station = self.request.GET.get('station')
+        stage = self.request.GET.get('stage')
+
+        if month_from:
+            queryset = queryset.filter(month__gte=month_from)
+        if month_to:
+            queryset = queryset.filter(month__lte=month_to)
+        if station:
+            queryset = queryset.filter(station__icontains=station)
+        if stage:
+            queryset = queryset.filter(stage__icontains=stage)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('search', '')
+        context['month_from'] = self.request.GET.get('month_from', '')
+        context['month_to'] = self.request.GET.get('month_to', '')
+        context['station'] = self.request.GET.get('station', '')
+        context['stage'] = self.request.GET.get('stage', '')
+        return context
+
 @method_decorator(staff_member_required, name='dispatch')
 class UpdateRejectionSheetView(UpdateView):
     model = RejectionSheet
@@ -231,7 +459,203 @@ class ListSolderingBitRecordView(ListView):
     model = SolderingBitRecord
     template_name = 'SolderingBitRecord/list_soldering_bit_records.html'
     context_object_name = 'records'
-    ordering = ['-date', '-time']
+    ordering = ['-month']
+
+    def get_queryset(self):
+        queryset = super().get_queryset()
+        
+        # Apply search
+        search_query = self.request.GET.get('search')
+        if search_query:
+            queryset = queryset.filter(
+                Q(doc_number__icontains=search_query) |
+                Q(machine_no__name__icontains=search_query) |
+                Q(machine_location__icontains=search_query) |
+                Q(part_name__icontains=search_query) |
+                Q(station__icontains=search_query)
+            )
+        
+        # Apply date filter
+        date_from = self.request.GET.get('date_from')
+        date_to = self.request.GET.get('date_to')
+        if date_from:
+            queryset = queryset.filter(month__gte=date_from)
+        if date_to:
+            queryset = queryset.filter(month__lte=date_to)
+        
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['search_query'] = self.request.GET.get('search', '')
+        context['date_from'] = self.request.GET.get('date_from', '')
+        context['date_to'] = self.request.GET.get('date_to', '')
+        return context
+
+    def get(self, request, *args, **kwargs):
+        if 'export' in request.GET:
+            queryset = self.get_queryset()
+            export_format = request.GET.get('export')
+            if export_format == 'excel':
+                return self.export_excel(queryset)
+            elif export_format == 'pdf':
+                return self.export_pdf(queryset)
+        return super().get(request, *args, **kwargs)
+
+    def export_excel(self, queryset):
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename=soldering_bit_records.xlsx'
+
+        workbook = xlsxwriter.Workbook(response, {'in_memory': True})
+        worksheet = workbook.add_worksheet()
+
+        # Define styles
+        header_format = workbook.add_format({
+            'bold': True,
+            'font_color': 'white',
+            'bg_color': '#4CAF50',
+            'border': 1,
+            'align': 'center',
+            'valign': 'vcenter',
+            'text_wrap': True
+        })
+        cell_format = workbook.add_format({
+            'border': 1,
+            'align': 'center',
+            'valign': 'vcenter'
+        })
+        date_format = workbook.add_format({
+            'border': 1,
+            'align': 'center',
+            'valign': 'vcenter',
+            'num_format': 'yyyy-mm-dd'
+        })
+        time_format = workbook.add_format({
+            'border': 1,
+            'align': 'center',
+            'valign': 'vcenter',
+            'num_format': 'hh:mm:ss'
+        })
+
+        # Set column widths
+        for col in range(17):
+            worksheet.set_column(col, col, 15)
+
+        # Write header row
+        headers = [
+            'Station', 'Doc. No.', 'Part Name', 'Process/Operation', 'Machine Location',
+            'Month', 'Time', 'Operator Name', 'Soldering Points/Part', 'Bit Size',
+            'Date', 'Produce Quantity Shift A', 'Produce Quantity Shift B',
+            'Total Quantity', 'Total Soldering Points/Day', 'Bit Life Remaining',
+            'Bit Change Date'
+        ]
+        for col, header in enumerate(headers):
+            worksheet.write(0, col, header, header_format)
+
+        # Write data rows
+        for row, record in enumerate(queryset, start=1):
+            worksheet.write(row, 0, record.station, cell_format)
+            worksheet.write(row, 1, record.doc_number, cell_format)
+            worksheet.write(row, 2, record.part_name, cell_format)
+            worksheet.write(row, 3, record.machine_no.name, cell_format)
+            worksheet.write(row, 4, record.get_machine_location_display(), cell_format)
+            worksheet.write(row, 5, record.month, date_format)
+            worksheet.write(row, 6, record.time, time_format)
+            worksheet.write(row, 7, record.operator_name.username if record.operator_name else '', cell_format)
+            worksheet.write(row, 8, record.soldering_points_per_part, cell_format)
+            worksheet.write(row, 9, record.bit_size, cell_format)
+            worksheet.write(row, 10, record.date, date_format)
+            worksheet.write(row, 11, record.produce_quantity_shift_a, cell_format)
+            worksheet.write(row, 12, record.produce_quantity_shift_b, cell_format)
+            worksheet.write(row, 13, record.total_quantity, cell_format)
+            worksheet.write(row, 14, record.total_soldering_points, cell_format)
+            worksheet.write(row, 15, record.bit_life_remaining, cell_format)
+            worksheet.write(row, 16, record.bit_change_date, date_format)
+
+        workbook.close()
+        return response
+
+    def export_pdf(self, queryset):
+        response = HttpResponse(content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename=soldering_bit_records.pdf'
+
+        buffer = BytesIO()
+        doc = SimpleDocTemplate(buffer, pagesize=landscape(letter), rightMargin=30, leftMargin=30, topMargin=30, bottomMargin=30)
+
+        elements = []
+
+        # Add title
+        styles = getSampleStyleSheet()
+        elements.append(Paragraph("Soldering Bit Records", styles['Title']))
+        elements.append(Paragraph("<br/><br/>", styles['Normal']))
+
+        # Prepare data for table
+        data = [
+            ['Station', 'Doc. No.', 'Part Name', 'Process/Operation', 'Machine Location',
+             'Month', 'Time', 'Operator Name', 'Soldering Points/Part', 'Bit Size',
+             'Date', 'Produce Quantity Shift A', 'Produce Quantity Shift B',
+             'Total Quantity', 'Total Soldering Points/Day', 'Bit Life Remaining',
+             'Bit Change Date']
+        ]
+        for record in queryset:
+            data.append([
+                record.station,
+                record.doc_number,
+                record.part_name,
+                record.machine_no.name,
+                record.get_machine_location_display(),
+                record.month.strftime('%Y-%m-%d'),
+                record.time.strftime('%H:%M:%S'),
+                record.operator_name.username if record.operator_name else '',
+                str(record.soldering_points_per_part),
+                record.bit_size,
+                record.date.strftime('%Y-%m-%d'),
+                str(record.produce_quantity_shift_a),
+                str(record.produce_quantity_shift_b),
+                str(record.total_quantity),
+                str(record.total_soldering_points),
+                str(record.bit_life_remaining),
+                record.bit_change_date.strftime('%Y-%m-%d')
+            ])
+
+        # Create table
+        table = Table(data, repeatRows=1)
+
+        # Add style to table
+        style = TableStyle([
+            ('BACKGROUND', (0, 0), (-1, 0), colors.green),
+            ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+            ('FONTSIZE', (0, 0), (-1, 0), 8),
+            ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+            ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+            ('TEXTCOLOR', (0, 1), (-1, -1), colors.black),
+            ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+            ('FONTNAME', (0, 1), (-1, -1), 'Helvetica'),
+            ('FONTSIZE', (0, 1), (-1, -1), 7),
+            ('TOPPADDING', (0, 1), (-1, -1), 6),
+            ('BOTTOMPADDING', (0, 1), (-1, -1), 6),
+            ('GRID', (0, 0), (-1, -1), 1, colors.black)
+        ])
+
+        # Add a strip pattern to the table
+        for row in range(1, len(data)):
+            if row % 2 == 0:
+                style.add('BACKGROUND', (0, row), (-1, row), colors.lightgrey)
+
+        table.setStyle(style)
+
+        # Add the table to the elements
+        elements.append(table)
+
+        # Build the PDF
+        doc.build(elements)
+
+        pdf = buffer.getvalue()
+        buffer.close()
+        response.write(pdf)
+        return response
     
     
 @method_decorator(staff_member_required, name='dispatch')

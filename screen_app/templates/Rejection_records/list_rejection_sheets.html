@@ -78,10 +78,66 @@
     color: #777;
     font-style: italic;
   }
+  .search-and-filter {
+    background-color: #f8f8f8;
+    padding: 20px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+.search-bar, .filter-form {
+    margin-bottom: 15px;
+}
+.search-form, .filter-form {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+input[type="text"], input[type="month"], select {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+button {
+    padding: 8px 15px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+button:hover {
+    background-color: #45a049;
+}
+
 </style>
 
 <div class="container">
   <h1>Rejection Sheets</h1>
+  {% comment %} <div class="search-and-filter">
+    <div class="search-bar">
+        <form method="get" class="search-form">
+            <input type="text" name="search" placeholder="Search sheets..." value="{{ search_query }}">
+            <button type="submit">Search</button>
+        </form>
+    </div>
+
+    <div class="filter-form">
+        <form method="get" class="filter-form">
+            <input type="hidden" name="search" value="{{ search_query }}">
+            <input type="month" name="month_from" placeholder="Month From" value="{{ month_from }}">
+            <input type="month" name="month_to" placeholder="Month To" value="{{ month_to }}">
+            <input type="text" name="station" placeholder="Station" value="{{ station }}">
+            <select name="stage">
+                <option value="">All Stages</option>
+                {% for stage_value, stage_name in stages %}
+                    <option value="{{ stage_value }}" {% if stage == stage_value %}selected{% endif %}>{{ stage_name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Filter</button>
+            <a href="{% url 'list_rejection_sheets' %}">Clear All</a>
+        </form>
+    </div>
+</div> {% endcomment %}
 
   <a href="{% url 'add_rejection_sheet' %}" class="add-new-btn"
     >Add New Sheet</a
@@ -95,6 +151,9 @@
         <th>Stage</th>
         <th>Part Description</th>
         <th>Total Rejection Qty</th>
+        <th>Total Pass Qty</th>
+        <th>Closing bal</th>
+
         <th>Operator Name</th>
         <th>Month</th>
         <th>Actions</th>
@@ -107,7 +166,9 @@
         <td>{{ sheet.get_stage_display }}</td>
         <td>{{ sheet.get_part_description_display }}</td>
 
-        <td>{{ sheet.get_part_description_display }}</td>
+        <td>{{ sheet.total_rejection_qty }}</td>
+        <td>{{ sheet.total_pass_qty }}</td>
+        <td>{{ sheet.closing_balance }}</td>
         <td>{{ sheet.operator_name }}</td>
         <td>{{ sheet.month|date:"F Y" }}</td>
         <td>
