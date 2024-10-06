@@ -1,7 +1,5 @@
 
----
-
-# Interface With Machine
+# Interface 
 
 This project provides an interface to interact with machines via a web-based application. It allows users to control and monitor various machine operations, manage media files, and configure process settings using a user-friendly interface.
 
@@ -10,11 +8,12 @@ This project provides an interface to interact with machines via a web-based app
 1. [Introduction](#introduction)
 2. [Features](#features)
 3. [Installation](#installation)
-4. [Running Daphne for ASGI](#running-daphne-for-asgi)
-5. [Technologies Used](#technologies-used)
-6. [Contributing](#contributing)
-7. [License](#license)
-8. [Contact](#contact)
+4. [Setting Up Virtual Environment (myenv)](#setting-up-virtual-environment-myenv)
+5. [Running Daphne for ASGI](#running-daphne-for-asgi)
+6. [Technologies Used](#technologies-used)
+7. [Contributing](#contributing)
+8. [License](#license)
+9. [Contact](#contact)
 
 ## Introduction
 
@@ -36,7 +35,6 @@ The **Interface With Machine** project is designed to provide an efficient inter
 - Support for PDF and Media Files
 - Control Dashboard for Monitoring Key Metrics
 
-
 ## Installation
 
 1. Clone the repository:
@@ -45,20 +43,39 @@ The **Interface With Machine** project is designed to provide an efficient inter
    cd InterfaceWithMachine
    ```
 
-2. Install the required dependencies:
+2. Set up and activate the virtual environment (`myenv`):
+
+   ```bash
+   python -m venv myenv
+   ```
+
+   - **Windows:**
+     ```bash
+     myenv\Scripts\activate
+     ```
+
+   - **Linux/MacOS:**
+     ```bash
+     source myenv/bin/activate
+     ```
+
+3. Install the required dependencies:
    ```bash
    pip install -r requirements.txt
    ```
 
-3. Run database migrations:
+4. Run database migrations:
    ```bash
    python manage.py migrate
    ```
 
-4. Create a superuser to access the admin interface:
+5. Create a superuser to access the admin interface:
    ```bash
    python manage.py createsuperuser
    ```
+
+
+This will ensure that all dependencies are installed in an isolated environment, and your system's global Python packages remain unaffected.
 
 ## Running Daphne for ASGI
 
@@ -97,4 +114,17 @@ For any inquiries, feel free to reach out at:
 - **Email:** [Reanataiot.com]
 - **GitHub:** [ft-prince](https://github.com/ft-prince)
 
+### Admin and User Access
+
+- **Admin Access:**
+  - Username: `prince`
+  - Password: `123456`
+  - Admin username: `admin`
+  - Admin password: `interface123`
+
+- **Normal User Access:**
+  - Username: `user2`
+  - Password: `interface123`
+
 ---
+
